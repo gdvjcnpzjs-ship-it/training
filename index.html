@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <!-- iPhone ホーム画面追加用設定 -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="TRAIN LOG">
+  <title>TRAINING MATRIX</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      user-select: none;
+      -webkit-user-select: none;
+      font-family: 'Courier New', Consolas, Monaco, monospace;
+    }
+
+    body {
+      background-color: #030503;
+      color: #00ff66;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 15px) 12px;
+    }
+
+    header {
+      text-align: center;
+      padding: 6px 0;
+      border-bottom: 1px solid #003311;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-size: 1.1rem;
+      letter-spacing: 3px;
+      color: #00ff66;
+      text-shadow: 0 0 6px rgba(0, 255, 102, 0.6);
+    }
+
+    /* カレンダーナビゲーション */
+    .nav-container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .nav-btn {
+      background: #001a00;
+      border: 1px solid #00ff66;
+      color: #00ff66;
+      padding: 4px 14px;
+      font-size: 0.9rem;
+      font-weight: bold;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .nav-btn:active {
+      background: #00ff66;
+      color: #000;
+    }
+
+    .month-title {
+      font-size: 1rem;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* カレンダー本体 */
+    .calendar-container {
+      border: 1px solid #004411;
+      background-color: #000d00;
+      border-radius: 6px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0, 255, 102, 0.1);
+    }
+
+    .weekday-header {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      text-align: center;
+      font-size: 0.7rem;
+      padding: 6px 0;
+      border-bottom: 1px solid #003311;
+      background-color: #001500;
+    }
+
+    .weekday { color: #00aa44; }
+    .weekday.sun { color: #ff5555; }
+    .weekday.sat { color: #00aaff; }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .day-cell {
+      min-height: 52px;
+      border-right: 1px solid #002200;
+      border-bottom: 1px solid #002200;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      padding-top: 3px;
+      position: relative;
+      background-color: #030503;
+    }
+    .day-cell:nth-child(7n) {
+      border-right: none;
+    }
+
+    .day-cell.other-month {
+      opacity: 0.2;
+      background-color: #010301;
+    }
+
+    .day-cell.today {
+      background-color: #001a08;
+      box-shadow: inset 0 0 0 1px #00ff66;
+    }
+
+    .day-number {
+      font-size: 0.7rem;
+      text-align: center;
+      margin-bottom: 3px;
+      color: #00aa44;
+    }
+    .day-cell.today .day-number {
+      font-weight: bold;
+      color: #00ff66;
+      text-shadow: 0 0 4px #00ff66;
+    }
+
+    /* 記録バー（Googleカレンダー終日表示風） */
+    .bars-container {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+      width: 100%;
+      margin-top: 2px;
+    }
+
+    .bar-wrapper {
+      height: 7px;
+      width: 100%;
+      display: flex;
+    }
+
+    .bar {
+      height: 100%;
+      width: 100%;
+    }
+
+    .bar.run {
+      background-color: #00a2ff;
+      box-shadow: 0 0 4px rgba(0, 162, 255, 0.8);
+    }
+
+    .bar.str {
+      background-color: #ff3355;
+      box-shadow: 0 0 4px rgba(255, 51, 85, 0.8);
+    }
+
+    /* 連続入力時の連結スタイル */
+    .bar.standalone {
+      border-radius: 3px;
+      margin: 0 2px;
+      width: calc(100% - 4px);
+    }
+    .bar.connect-left-only {
+      border-top-right-radius: 3px;
+      border-bottom-right-radius: 3px;
+      margin-right: 2px;
+      width: calc(100% - 2px);
+    }
+    .bar.connect-right-only {
+      border-top-left-radius: 3px;
+      border-bottom-left-radius: 3px;
+      margin-left: 2px;
+      width: calc(100% - 2px);
+    }
+    .bar.connect-both {
+      border-radius: 0;
+      margin: 0;
+      width: 100%;
+    }
+
+    /* 当日入力コントローラー */
+    .controls {
+      margin-top: 12px;
+      background-color: #001100;
+      border: 1px solid #004411;
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .controls-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+      padding-bottom: 4px;
+      border-bottom: 1px dashed #003311;
+    }
+
+    .controls-title {
+      font-size: 0.75rem;
+      color: #00cc55;
+      letter-spacing: 1px;
+    }
+
+    .today-status {
+      font-size: 0.75rem;
+    }
+
+    .button-group-container {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-wrapper {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .main-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 14px 0;
+      font-size: 1.1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      background: #030503;
+      cursor: pointer;
+      transition: background 0.1s;
+    }
+
+    .main-btn.run-btn {
+      color: #00a2ff;
+      border: 2px solid #00a2ff;
+      box-shadow: inset 0 0 6px rgba(0, 162, 255, 0.2);
+    }
+    .main-btn.run-btn:active {
+      background: #00a2ff;
+      color: #000;
+    }
+
+    .main-btn.str-btn {
+      color: #ff3355;
+      border: 2px solid #ff3355;
+      box-shadow: inset 0 0 6px rgba(255, 51, 85, 0.2);
+    }
+    .main-btn.str-btn:active {
+      background: #ff3355;
+      color: #000;
+    }
+
+    .cancel-btn {
+      background: transparent;
+      border: 1px solid #224422;
+      color: #668866;
+      font-size: 0.7rem;
+      padding: 5px 0;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .cancel-btn:active {
+      background: #220000;
+      color: #ff8888;
+      border-color: #ff3355;
+    }
+  </style>
+</head>
+<body>
+
+  <div>
+    <header>
+      <h1>TRAINING MATRIX</h1>
+    </header>
+
+    <div class="nav-container">
+      <button class="nav-btn" id="prev-month">&lt;</button>
+      <div class="month-title" id="month-title">2026.09</div>
+      <button class="nav-btn" id="next-month">&gt;</button>
+    </div>
+
+    <div class="calendar-container">
+      <div class="weekday-header">
+        <div class="weekday sun">SUN</div>
+        <div class="weekday">MON</div>
+        <div class="weekday">TUE</div>
+        <div class="weekday">WED</div>
+        <div class="weekday">THU</div>
+        <div class="weekday">FRI</div>
+        <div class="weekday sat">SAT</div>
+      </div>
+      <div class="calendar-grid" id="calendar-grid"></div>
+    </div>
+  </div>
+
+  <!-- 当日用入力パネル -->
+  <div class="controls">
+    <div class="controls-header">
+      <span class="controls-title">&gt; TODAY INPUT</span>
+      <span class="today-status" id="today-date-str">----/--/--</span>
+    </div>
+
+    <div class="button-group-container">
+      <!-- RUNグループ -->
+      <div class="btn-wrapper">
+        <div class="main-btn run-btn" id="btn-run">RUN</div>
+        <button class="cancel-btn" id="btn-run-cancel">RUN取消</button>
+      </div>
+
+      <!-- STRグループ -->
+      <div class="btn-wrapper">
+        <div class="main-btn str-btn" id="btn-str">STR</div>
+        <button class="cancel-btn" id="btn-str-cancel">STR取消</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // データ保存キー
+    const STORAGE_KEY = 'matrix_training_logs_v1';
+    
+    // 現在表示中の年月
+    let displayDate = new Date();
+    // 実際の「今日」
+    const today = new Date();
+    const todayStr = formatDateStr(today);
+
+    // ログデータ取得 (形式: { "YYYY-MM-DD": { run: true, str: false } })
+    function getLogs() {
+      const data = localStorage.getItem(STORAGE_KEY);
+      return data ? JSON.parse(data) : {};
+    }
+
+    function saveLogs(logs) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function formatDateStr(date) {
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, '0');
+      const d = String(date.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    function getShiftedDateStr(dateStr, days) {
+      const parts = dateStr.split('-');
+      const d = new Date(parts[0], parts[1] - 1, parts[2]);
+      d.setDate(d.getDate() + days);
+      return formatDateStr(d);
+    }
+
+    // カレンダー描画
+    function renderCalendar() {
+      const year = displayDate.getFullYear();
+      const month = displayDate.getMonth();
+
+      document.getElementById('month-title').textContent = `${year}.${String(month + 1).padStart(2, '0')}`;
+      document.getElementById('today-date-str').textContent = todayStr.replace(/-/g, '.');
+
+      const grid = document.getElementById('calendar-grid');
+      grid.innerHTML = '';
+
+      const firstDay = new Date(year, month, 1);
+      const lastDay = new Date(year, month + 1, 0);
+
+      const startDayOfWeek = firstDay.getDay();
+      const totalDays = lastDay.getDate();
+
+      const logs = getLogs();
+
+      // 前月埋め
+      const prevMonthLastDay = new Date(year, month, 0).getDate();
+      for (let i = startDayOfWeek - 1; i >= 0; i--) {
+        const d = prevMonthLastDay - i;
+        const pDate = new Date(year, month - 1, d);
+        const dateStr = formatDateStr(pDate);
+        grid.appendChild(createCell(d, true, dateStr, logs, (startDayOfWeek - 1 - i)));
+      }
+
+      // 当月
+      for (let d = 1; d <= totalDays; d++) {
+        const currentDate = new Date(year, month, d);
+        const dateStr = formatDateStr(currentDate);
+        const dayOfWeek = currentDate.getDay();
+        const isToday = (dateStr === todayStr);
+        grid.appendChild(createCell(d, false, dateStr, logs, dayOfWeek, isToday));
+      }
+
+      // 翌月埋め（6行表示に統一）
+      const totalCells = grid.children.length;
+      const nextDays = (totalCells > 35 ? 42 : 35) - totalCells;
+      for (let d = 1; d <= nextDays; d++) {
+        const nDate = new Date(year, month + 1, d);
+        const dateStr = formatDateStr(nDate);
+        const dayOfWeek = nDate.getDay();
+        grid.appendChild(createCell(d, true, dateStr, logs, dayOfWeek));
+      }
+
+      updateButtonStatus();
+    }
+
+    // 日付セル生成
+    function createCell(dayNumber, isOtherMonth, dateStr, logs, dayOfWeek, isToday = false) {
+      const cell = document.createElement('div');
+      cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
+
+      const numEl = document.createElement('div');
+      numEl.className = 'day-number';
+      numEl.textContent = dayNumber;
+      cell.appendChild(numEl);
+
+      const barsContainer = document.createElement('div');
+      barsContainer.className = 'bars-container';
+
+      const log = logs[dateStr] || {};
+
+      // RUNバー処理
+      if (log.run) {
+        barsContainer.appendChild(createBar('run', dateStr, logs, dayOfWeek));
+      }
+
+      // STRバー処理
+      if (log.str) {
+        barsContainer.appendChild(createBar('str', dateStr, logs, dayOfWeek));
+      }
+
+      cell.appendChild(barsContainer);
+      return cell;
+    }
+
+    // 連結ロジック付きのバーを生成
+    function createBar(type, dateStr, logs, dayOfWeek) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'bar-wrapper';
+
+      const bar = document.createElement('div');
+      
+      const prevDateStr = getShiftedDateStr(dateStr, -1);
+      const nextDateStr = getShiftedDateStr(dateStr, 1);
+
+      // 日曜日(0)なら左側非連結、土曜日(6)なら右側非連結
+      const hasLeft = (dayOfWeek > 0) && logs[prevDateStr] && logs[prevDateStr][type];
+      const hasRight = (dayOfWeek < 6) && logs[nextDateStr] && logs[nextDateStr][type];
+
+      let connectClass = 'standalone';
+      if (hasLeft && hasRight) {
+        connectClass = 'connect-both';
+      } else if (hasLeft) {
+        connectClass = 'connect-left-only';
+      } else if (hasRight) {
+        connectClass = 'connect-right-only';
+      }
+
+      bar.className = `bar ${type} ${connectClass}`;
+      wrapper.appendChild(bar);
+      return wrapper;
+    }
+
+    // 当日の登録・取り消し処理
+    function setLog(type, value) {
+      const logs = getLogs();
+      if (!logs[todayStr]) {
+        logs[todayStr] = {};
+      }
+      logs[todayStr][type] = value;
+
+      // 両方ともfalseならキー自体を削除して軽量化
+      if (!logs[todayStr].run && !logs[todayStr].str) {
+        delete logs[todayStr];
+      }
+
+      saveLogs(logs);
+      renderCalendar();
+    }
+
+    function updateButtonStatus() {
+      const logs = getLogs();
+      const current = logs[todayStr] || {};
+      
+      const runBtn = document.getElementById('btn-run');
+      const strBtn = document.getElementById('btn-str');
+
+      runBtn.style.background = current.run ? '#00a2ff' : '#030503';
+      runBtn.style.color = current.run ? '#000' : '#00a2ff';
+
+      strBtn.style.background = current.str ? '#ff3355' : '#030503';
+      strBtn.style.color = current.str ? '#000' : '#ff3355';
+    }
+
+    // イベントリスナー設定
+    document.getElementById('prev-month').addEventListener('click', () => {
+      displayDate.setMonth(displayDate.getMonth() - 1);
+      renderCalendar();
+    });
+
+    document.getElementById('next-month').addEventListener('click', () => {
+      displayDate.setMonth(displayDate.getMonth() + 1);
+      renderCalendar();
+    });
+
+    document.getElementById('btn-run').addEventListener('click', () => setLog('run', true));
+    document.getElementById('btn-run-cancel').addEventListener('click', () => setLog('run', false));
+
+    document.getElementById('btn-str').addEventListener('click', () => setLog('str', true));
+    document.getElementById('btn-str-cancel').addEventListener('click', () => setLog('str', false));
+
+    // 初期描画
+    renderCalendar();
+  </script>
+</body>
+</html>
