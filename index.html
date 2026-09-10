@@ -145,6 +145,7 @@
       margin-top: 2px;
     }
 
+    /* 上段（STR）・下段（RUN）の固定スロット */
     .bar-wrapper {
       height: 7px;
       width: 100%;
@@ -426,47 +427,44 @@
       const barsContainer = document.createElement('div');
       barsContainer.className = 'bars-container';
 
-      const log = logs[dateStr] || {};
+      // 1段目: STR（赤）固定スロット
+      barsContainer.appendChild(createBarSlot('str', dateStr, logs, dayOfWeek));
 
-      // RUNバー処理
-      if (log.run) {
-        barsContainer.appendChild(createBar('run', dateStr, logs, dayOfWeek));
-      }
-
-      // STRバー処理
-      if (log.str) {
-        barsContainer.appendChild(createBar('str', dateStr, logs, dayOfWeek));
-      }
+      // 2段目: RUN（青）固定スロット
+      barsContainer.appendChild(createBarSlot('run', dateStr, logs, dayOfWeek));
 
       cell.appendChild(barsContainer);
       return cell;
     }
 
-    // 連結ロジック付きのバーを生成
-    function createBar(type, dateStr, logs, dayOfWeek) {
+    // 固定スロット内で連結ロジック付きバーを生成
+    function createBarSlot(type, dateStr, logs, dayOfWeek) {
       const wrapper = document.createElement('div');
       wrapper.className = 'bar-wrapper';
 
-      const bar = document.createElement('div');
-      
-      const prevDateStr = getShiftedDateStr(dateStr, -1);
-      const nextDateStr = getShiftedDateStr(dateStr, 1);
+      const log = logs[dateStr];
+      if (log && log[type]) {
+        const bar = document.createElement('div');
+        
+        const prevDateStr = getShiftedDateStr(dateStr, -1);
+        const nextDateStr = getShiftedDateStr(dateStr, 1);
 
-      // 日曜日(0)なら左側非連結、土曜日(6)なら右側非連結
-      const hasLeft = (dayOfWeek > 0) && logs[prevDateStr] && logs[prevDateStr][type];
-      const hasRight = (dayOfWeek < 6) && logs[nextDateStr] && logs[nextDateStr][type];
+        // 日曜日(0)なら左側非連結、土曜日(6)なら右側非連結
+        const hasLeft = (dayOfWeek > 0) && logs[prevDateStr] && logs[prevDateStr][type];
+        const hasRight = (dayOfWeek < 6) && logs[nextDateStr] && logs[nextDateStr][type];
 
-      let connectClass = 'standalone';
-      if (hasLeft && hasRight) {
-        connectClass = 'connect-both';
-      } else if (hasLeft) {
-        connectClass = 'connect-left-only';
-      } else if (hasRight) {
-        connectClass = 'connect-right-only';
+        let connectClass = 'standalone';
+        if (hasLeft && hasRight) {
+          connectClass = 'connect-both';
+        } else if (hasLeft) {
+          connectClass = 'connect-left-only';
+        } else if (hasRight) {
+          connectClass = 'connect-right-only';
+        }
+
+        bar.className = `bar ${type} ${connectClass}`;
+        wrapper.appendChild(bar);
       }
-
-      bar.className = `bar ${type} ${connectClass}`;
-      wrapper.appendChild(bar);
       return wrapper;
     }
 
