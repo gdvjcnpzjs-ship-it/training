@@ -7,9 +7,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TRAIN LOG">
-  
-  <!-- ホーム画面アイコン：黒背景 ＋ 白字の剣マーク -->
-  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'>⚔️</text></svg>">
+
+  <!-- JSで動的にPNGのapple-touch-iconを注入するため要素のみ定義 -->
+  <link rel="apple-touch-icon" id="dynamic-apple-touch-icon" href="">
   <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'>⚔️</text></svg>">
 
   <title>TRAINING MATRIX</title>
@@ -542,6 +542,32 @@
   </div>
 
   <script>
+    // iOS Safari用: Canvasで「黒背景 ＋ 白文字⚔️」のPNG Data URLを動的生成してapple-touch-iconにセット
+    (function generateAppleTouchIcon() {
+      const canvas = document.createElement('canvas');
+      canvas.width = 180;
+      canvas.height = 180;
+      const ctx = canvas.getContext('2d');
+
+      // 背景（黒）
+      ctx.fillStyle = '#030503';
+      ctx.fillRect(0, 0, 180, 180);
+
+      // 絵文字（白文字 ⚔️）
+      ctx.font = '100px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = '#ffffff';
+      ctx.fillText('⚔️', 90, 98);
+
+      // PNGデータURLへ変換してlink要素に設定
+      const pngDataUrl = canvas.toDataURL('image/png');
+      const iconTag = document.getElementById('dynamic-apple-touch-icon');
+      if (iconTag) {
+        iconTag.href = pngDataUrl;
+      }
+    })();
+
     const STORAGE_KEY = 'matrix_training_logs_v1';
     
     let displayDate = new Date();
