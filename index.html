@@ -7,6 +7,11 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="TRAIN LOG">
+  
+  <!-- ホーム画面アイコン：黒背景 ＋ 白字の剣マーク -->
+  <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'>⚔️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'>⚔️</text></svg>">
+
   <title>TRAINING MATRIX</title>
   <style>
     * {
@@ -25,14 +30,14 @@
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: calc(env(safe-area-inset-top) + 10px) 12px calc(env(safe-area-inset-bottom) + 15px) 12px;
+      padding: calc(env(safe-area-inset-top) + 10px) 10px calc(env(safe-area-inset-bottom) + 15px) 10px;
     }
 
     header {
       text-align: center;
-      padding: 6px 0;
+      padding: 4px 0;
       border-bottom: 1px solid #003311;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     h1 {
@@ -42,20 +47,56 @@
       text-shadow: 0 0 6px rgba(0, 255, 102, 0.6);
     }
 
+    /* メインタブ切替ナビゲーション */
+    .tab-container {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: #001a00;
+      border: 1px solid #004411;
+      color: #00aa44;
+      padding: 6px 0;
+      font-size: 0.8rem;
+      font-weight: bold;
+      text-align: center;
+      border-radius: 4px;
+      cursor: pointer;
+      letter-spacing: 1px;
+    }
+
+    .tab-btn.active {
+      background: #00ff66;
+      color: #000;
+      border-color: #00ff66;
+      box-shadow: 0 0 8px rgba(0, 255, 102, 0.5);
+    }
+
+    /* ビュー切替 */
+    .view-content {
+      display: none;
+    }
+    .view-content.active {
+      display: block;
+    }
+
     /* カレンダーナビゲーション */
     .nav-container {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
 
     .nav-btn {
       background: #001a00;
       border: 1px solid #00ff66;
       color: #00ff66;
-      padding: 4px 14px;
-      font-size: 0.9rem;
+      padding: 3px 12px;
+      font-size: 0.85rem;
       font-weight: bold;
       border-radius: 4px;
       cursor: pointer;
@@ -66,7 +107,7 @@
     }
 
     .month-title {
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: bold;
       letter-spacing: 1px;
     }
@@ -84,8 +125,8 @@
       display: grid;
       grid-template-columns: repeat(7, 1fr);
       text-align: center;
-      font-size: 0.7rem;
-      padding: 6px 0;
+      font-size: 0.65rem;
+      padding: 5px 0;
       border-bottom: 1px solid #003311;
       background-color: #001500;
     }
@@ -100,13 +141,13 @@
     }
 
     .day-cell {
-      min-height: 52px;
+      min-height: 58px;
       border-right: 1px solid #002200;
       border-bottom: 1px solid #002200;
       display: flex;
       flex-direction: column;
       justify-content: flex-start;
-      padding-top: 3px;
+      padding-top: 2px;
       position: relative;
       background-color: #030503;
     }
@@ -125,9 +166,9 @@
     }
 
     .day-number {
-      font-size: 0.7rem;
+      font-size: 0.65rem;
       text-align: center;
-      margin-bottom: 3px;
+      margin-bottom: 2px;
       color: #00aa44;
     }
     .day-cell.today .day-number {
@@ -136,18 +177,16 @@
       text-shadow: 0 0 4px #00ff66;
     }
 
-    /* 記録バー（Googleカレンダー終日表示風） */
+    /* 記録バー（固定スロット: 1段目=VIT, 2段目=STR, 3段目=INT, 4段目=CHA） */
     .bars-container {
       display: flex;
       flex-direction: column;
-      gap: 3px;
+      gap: 2px;
       width: 100%;
-      margin-top: 2px;
     }
 
-    /* 上段（STR）・下段（RUN）の固定スロット */
     .bar-wrapper {
-      height: 7px;
+      height: 5px;
       width: 100%;
       display: flex;
     }
@@ -157,33 +196,40 @@
       width: 100%;
     }
 
-    .bar.run {
+    .bar.vit {
       background-color: #00a2ff;
       box-shadow: 0 0 4px rgba(0, 162, 255, 0.8);
     }
-
     .bar.str {
       background-color: #ff3355;
       box-shadow: 0 0 4px rgba(255, 51, 85, 0.8);
     }
+    .bar.int {
+      background-color: #00ff66;
+      box-shadow: 0 0 4px rgba(0, 255, 102, 0.8);
+    }
+    .bar.cha {
+      background-color: #ffcc00;
+      box-shadow: 0 0 4px rgba(255, 204, 0, 0.8);
+    }
 
     /* 連続入力時の連結スタイル */
     .bar.standalone {
-      border-radius: 3px;
-      margin: 0 2px;
-      width: calc(100% - 4px);
+      border-radius: 2px;
+      margin: 0 1px;
+      width: calc(100% - 2px);
     }
     .bar.connect-left-only {
-      border-top-right-radius: 3px;
-      border-bottom-right-radius: 3px;
-      margin-right: 2px;
-      width: calc(100% - 2px);
+      border-top-right-radius: 2px;
+      border-bottom-right-radius: 2px;
+      margin-right: 1px;
+      width: calc(100% - 1px);
     }
     .bar.connect-right-only {
-      border-top-left-radius: 3px;
-      border-bottom-left-radius: 3px;
-      margin-left: 2px;
-      width: calc(100% - 2px);
+      border-top-left-radius: 2px;
+      border-bottom-left-radius: 2px;
+      margin-left: 1px;
+      width: calc(100% - 1px);
     }
     .bar.connect-both {
       border-radius: 0;
@@ -193,85 +239,77 @@
 
     /* 当日入力コントローラー */
     .controls {
-      margin-top: 12px;
+      margin-top: 10px;
       background-color: #001100;
       border: 1px solid #004411;
       border-radius: 8px;
-      padding: 12px;
+      padding: 10px;
     }
 
     .controls-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       padding-bottom: 4px;
       border-bottom: 1px dashed #003311;
     }
 
     .controls-title {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
       color: #00cc55;
       letter-spacing: 1px;
     }
 
     .today-status {
-      font-size: 0.75rem;
+      font-size: 0.7rem;
     }
 
     .button-group-container {
       display: flex;
-      gap: 12px;
+      gap: 6px;
     }
 
     .btn-wrapper {
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 4px;
     }
 
     .main-btn {
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 14px 0;
-      font-size: 1.1rem;
+      padding: 10px 0;
+      font-size: 0.85rem;
       font-weight: bold;
-      border-radius: 6px;
+      border-radius: 5px;
       background: #030503;
       cursor: pointer;
       transition: background 0.1s;
     }
 
-    .main-btn.run-btn {
-      color: #00a2ff;
-      border: 2px solid #00a2ff;
-      box-shadow: inset 0 0 6px rgba(0, 162, 255, 0.2);
-    }
-    .main-btn.run-btn:active {
-      background: #00a2ff;
-      color: #000;
-    }
+    .main-btn.vit-btn { color: #00a2ff; border: 1.5px solid #00a2ff; box-shadow: inset 0 0 4px rgba(0, 162, 255, 0.2); }
+    .main-btn.vit-btn:active { background: #00a2ff; color: #000; }
 
-    .main-btn.str-btn {
-      color: #ff3355;
-      border: 2px solid #ff3355;
-      box-shadow: inset 0 0 6px rgba(255, 51, 85, 0.2);
-    }
-    .main-btn.str-btn:active {
-      background: #ff3355;
-      color: #000;
-    }
+    .main-btn.str-btn { color: #ff3355; border: 1.5px solid #ff3355; box-shadow: inset 0 0 4px rgba(255, 51, 85, 0.2); }
+    .main-btn.str-btn:active { background: #ff3355; color: #000; }
+
+    .main-btn.int-btn { color: #00ff66; border: 1.5px solid #00ff66; box-shadow: inset 0 0 4px rgba(0, 255, 102, 0.2); }
+    .main-btn.int-btn:active { background: #00ff66; color: #000; }
+
+    .main-btn.cha-btn { color: #ffcc00; border: 1.5px solid #ffcc00; box-shadow: inset 0 0 4px rgba(255, 204, 0, 0.2); }
+    .main-btn.cha-btn:active { background: #ffcc00; color: #000; }
 
     .cancel-btn {
       background: transparent;
-      border: 1px solid #224422;
-      color: #668866;
-      font-size: 0.7rem;
-      padding: 5px 0;
+      border: 1px solid #113311;
+      color: #447744;
+      font-size: 0.6rem;
+      padding: 4px 0;
       text-align: center;
-      border-radius: 4px;
+      border-radius: 3px;
       cursor: pointer;
     }
     .cancel-btn:active {
@@ -279,6 +317,103 @@
       color: #ff8888;
       border-color: #ff3355;
     }
+
+    /* RPGステータス画面デザイン */
+    .status-window {
+      border: 2px solid #00ff66;
+      background-color: #000d00;
+      border-radius: 8px;
+      padding: 16px;
+      box-shadow: 0 0 15px rgba(0, 255, 102, 0.15);
+      position: relative;
+    }
+    .status-window::before {
+      content: "STATUS";
+      position: absolute;
+      top: -10px;
+      left: 14px;
+      background: #030503;
+      padding: 0 6px;
+      font-size: 0.75rem;
+      color: #00ff66;
+      letter-spacing: 2px;
+    }
+
+    .status-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      border-bottom: 1px dashed #004411;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+    }
+
+    .player-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+    }
+    .player-level {
+      font-size: 1rem;
+      font-weight: bold;
+      color: #ffcc00;
+      text-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
+    }
+
+    .next-level-info {
+      font-size: 0.65rem;
+      color: #00aa44;
+      margin-top: 2px;
+      letter-spacing: 0.5px;
+    }
+
+    .stat-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .stat-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      font-weight: bold;
+    }
+
+    .stat-label.vit { color: #00a2ff; }
+    .stat-label.str { color: #ff3355; }
+    .stat-label.int { color: #00ff66; }
+    .stat-label.cha { color: #ffcc00; }
+
+    .stat-value {
+      color: #ffffff;
+    }
+
+    .gauge-bg {
+      width: 100%;
+      height: 10px;
+      background-color: #001500;
+      border: 1px solid #003311;
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .gauge-fill {
+      height: 100%;
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .gauge-fill.vit { background-color: #00a2ff; box-shadow: 0 0 6px #00a2ff; }
+    .gauge-fill.str { background-color: #ff3355; box-shadow: 0 0 6px #ff3355; }
+    .gauge-fill.int { background-color: #00ff66; box-shadow: 0 0 6px #00ff66; }
+    .gauge-fill.cha { background-color: #ffcc00; box-shadow: 0 0 6px #ffcc00; }
   </style>
 </head>
 <body>
@@ -288,62 +423,142 @@
       <h1>TRAINING MATRIX</h1>
     </header>
 
-    <div class="nav-container">
-      <button class="nav-btn" id="prev-month">&lt;</button>
-      <div class="month-title" id="month-title">2026.09</div>
-      <button class="nav-btn" id="next-month">&gt;</button>
+    <!-- タブ切り替えボタン -->
+    <div class="tab-container">
+      <div class="tab-btn active" id="tab-calendar">[ CALENDAR ]</div>
+      <div class="tab-btn" id="tab-status">[ STATUS ]</div>
     </div>
 
-    <div class="calendar-container">
-      <div class="weekday-header">
-        <div class="weekday sun">SUN</div>
-        <div class="weekday">MON</div>
-        <div class="weekday">TUE</div>
-        <div class="weekday">WED</div>
-        <div class="weekday">THU</div>
-        <div class="weekday">FRI</div>
-        <div class="weekday sat">SAT</div>
+    <!-- カレンダー画面 -->
+    <div class="view-content active" id="view-calendar">
+      <div class="nav-container">
+        <button class="nav-btn" id="prev-month">&lt;</button>
+        <div class="month-title" id="month-title">----.--</div>
+        <button class="nav-btn" id="next-month">&gt;</button>
       </div>
-      <div class="calendar-grid" id="calendar-grid"></div>
+
+      <div class="calendar-container">
+        <div class="weekday-header">
+          <div class="weekday sun">SUN</div>
+          <div class="weekday">MON</div>
+          <div class="weekday">TUE</div>
+          <div class="weekday">WED</div>
+          <div class="weekday">THU</div>
+          <div class="weekday">FRI</div>
+          <div class="weekday sat">SAT</div>
+        </div>
+        <div class="calendar-grid" id="calendar-grid"></div>
+      </div>
+    </div>
+
+    <!-- ステータス画面 -->
+    <div class="view-content" id="view-status">
+      <div class="status-window">
+        <div class="status-header">
+          <div class="player-name">HERO</div>
+          <div style="text-align: right;">
+            <div class="player-level" id="stat-level">LV.1</div>
+            <div class="next-level-info" id="stat-next">NEXT: 4 pts</div>
+          </div>
+        </div>
+        <div class="stat-list">
+          <!-- VIT -->
+          <div class="stat-item">
+            <div class="stat-info">
+              <span class="stat-label vit">VIT (Vitality)</span>
+              <span class="stat-value" id="val-vit">0 pts</span>
+            </div>
+            <div class="gauge-bg">
+              <div class="gauge-fill vit" id="gauge-vit"></div>
+            </div>
+          </div>
+          <!-- STR -->
+          <div class="stat-item">
+            <div class="stat-info">
+              <span class="stat-label str">STR (Strength)</span>
+              <span class="stat-value" id="val-str">0 pts</span>
+            </div>
+            <div class="gauge-bg">
+              <div class="gauge-fill str" id="gauge-str"></div>
+            </div>
+          </div>
+          <!-- INT -->
+          <div class="stat-item">
+            <div class="stat-info">
+              <span class="stat-label int">INT (Intelligence)</span>
+              <span class="stat-value" id="val-int">0 pts</span>
+            </div>
+            <div class="gauge-bg">
+              <div class="gauge-fill int" id="gauge-int"></div>
+            </div>
+          </div>
+          <!-- CHA -->
+          <div class="stat-item">
+            <div class="stat-info">
+              <span class="stat-label cha">CHA (Charisma)</span>
+              <span class="stat-value" id="val-cha">0 pts</span>
+            </div>
+            <div class="gauge-bg">
+              <div class="gauge-fill cha" id="gauge-cha"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- 当日用入力パネル -->
-  <div class="controls">
+  <!-- 当日用入力パネル（カレンダー画面時） -->
+  <div class="controls" id="controls-panel">
     <div class="controls-header">
       <span class="controls-title">&gt; TODAY INPUT</span>
       <span class="today-status" id="today-date-str">----/--/--</span>
     </div>
 
     <div class="button-group-container">
-      <!-- RUNグループ -->
+      <!-- VITグループ -->
       <div class="btn-wrapper">
-        <div class="main-btn run-btn" id="btn-run">RUN</div>
-        <button class="cancel-btn" id="btn-run-cancel">RUN取消</button>
+        <div class="main-btn vit-btn" id="btn-vit">VIT</div>
+        <button class="cancel-btn" id="btn-vit-cancel">取消</button>
       </div>
 
       <!-- STRグループ -->
       <div class="btn-wrapper">
         <div class="main-btn str-btn" id="btn-str">STR</div>
-        <button class="cancel-btn" id="btn-str-cancel">STR取消</button>
+        <button class="cancel-btn" id="btn-str-cancel">取消</button>
+      </div>
+
+      <!-- INTグループ -->
+      <div class="btn-wrapper">
+        <div class="main-btn int-btn" id="btn-int">INT</div>
+        <button class="cancel-btn" id="btn-int-cancel">取消</button>
+      </div>
+
+      <!-- CHAグループ -->
+      <div class="btn-wrapper">
+        <div class="main-btn cha-btn" id="btn-cha">CHA</div>
+        <button class="cancel-btn" id="btn-cha-cancel">取消</button>
       </div>
     </div>
   </div>
 
   <script>
-    // データ保存キー
     const STORAGE_KEY = 'matrix_training_logs_v1';
     
-    // 現在表示中の年月
     let displayDate = new Date();
-    // 実際の「今日」
     const today = new Date();
     const todayStr = formatDateStr(today);
 
-    // ログデータ取得 (形式: { "YYYY-MM-DD": { run: true, str: false } })
     function getLogs() {
       const data = localStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : {};
+      if (!data) return {};
+      const logs = JSON.parse(data);
+      
+      Object.keys(logs).forEach(date => {
+        if (logs[date].run !== undefined && logs[date].vit === undefined) {
+          logs[date].vit = logs[date].run;
+        }
+      });
+      return logs;
     }
 
     function saveLogs(logs) {
@@ -414,7 +629,6 @@
       updateButtonStatus();
     }
 
-    // 日付セル生成
     function createCell(dayNumber, isOtherMonth, dateStr, logs, dayOfWeek, isToday = false) {
       const cell = document.createElement('div');
       cell.className = `day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'today' : ''}`;
@@ -427,17 +641,15 @@
       const barsContainer = document.createElement('div');
       barsContainer.className = 'bars-container';
 
-      // 1段目: STR（赤）固定スロット
+      barsContainer.appendChild(createBarSlot('vit', dateStr, logs, dayOfWeek));
       barsContainer.appendChild(createBarSlot('str', dateStr, logs, dayOfWeek));
-
-      // 2段目: RUN（青）固定スロット
-      barsContainer.appendChild(createBarSlot('run', dateStr, logs, dayOfWeek));
+      barsContainer.appendChild(createBarSlot('int', dateStr, logs, dayOfWeek));
+      barsContainer.appendChild(createBarSlot('cha', dateStr, logs, dayOfWeek));
 
       cell.appendChild(barsContainer);
       return cell;
     }
 
-    // 固定スロット内で連結ロジック付きバーを生成
     function createBarSlot(type, dateStr, logs, dayOfWeek) {
       const wrapper = document.createElement('div');
       wrapper.className = 'bar-wrapper';
@@ -449,7 +661,6 @@
         const prevDateStr = getShiftedDateStr(dateStr, -1);
         const nextDateStr = getShiftedDateStr(dateStr, 1);
 
-        // 日曜日(0)なら左側非連結、土曜日(6)なら右側非連結
         const hasLeft = (dayOfWeek > 0) && logs[prevDateStr] && logs[prevDateStr][type];
         const hasRight = (dayOfWeek < 6) && logs[nextDateStr] && logs[nextDateStr][type];
 
@@ -468,7 +679,6 @@
       return wrapper;
     }
 
-    // 当日の登録・取り消し処理
     function setLog(type, value) {
       const logs = getLogs();
       if (!logs[todayStr]) {
@@ -476,30 +686,92 @@
       }
       logs[todayStr][type] = value;
 
-      // 両方ともfalseならキー自体を削除して軽量化
-      if (!logs[todayStr].run && !logs[todayStr].str) {
+      if (!logs[todayStr].vit && !logs[todayStr].str && !logs[todayStr].int && !logs[todayStr].cha) {
         delete logs[todayStr];
       }
 
       saveLogs(logs);
       renderCalendar();
+      renderStatus();
     }
 
     function updateButtonStatus() {
       const logs = getLogs();
       const current = logs[todayStr] || {};
       
-      const runBtn = document.getElementById('btn-run');
-      const strBtn = document.getElementById('btn-str');
+      const types = [
+        { id: 'btn-vit', key: 'vit', activeBg: '#00a2ff', color: '#00a2ff' },
+        { id: 'btn-str', key: 'str', activeBg: '#ff3355', color: '#ff3355' },
+        { id: 'btn-int', key: 'int', activeBg: '#00ff66', color: '#00ff66' },
+        { id: 'btn-cha', key: 'cha', activeBg: '#ffcc00', color: '#ffcc00' }
+      ];
 
-      runBtn.style.background = current.run ? '#00a2ff' : '#030503';
-      runBtn.style.color = current.run ? '#000' : '#00a2ff';
+      types.forEach(t => {
+        const btn = document.getElementById(t.id);
+        const isActive = !!current[t.key];
+        btn.style.background = isActive ? t.activeBg : '#030503';
+        btn.style.color = isActive ? '#000' : t.color;
+      });
+    }
 
-      strBtn.style.background = current.str ? '#ff3355' : '#030503';
-      strBtn.style.color = current.str ? '#000' : '#ff3355';
+    // RPGステータス描画
+    function renderStatus() {
+      const logs = getLogs();
+      let vitCount = 0, strCount = 0, intCount = 0, chaCount = 0;
+
+      Object.values(logs).forEach(log => {
+        if (log.vit) vitCount++;
+        if (log.str) strCount++;
+        if (log.int) intCount++;
+        if (log.cha) chaCount++;
+      });
+
+      const totalPt = vitCount + strCount + intCount + chaCount;
+
+      // レベル計算：LV.2まで4pt。以降は必要経験値が+4ずつ増加
+      let level = 1;
+      let reqNext = 4;
+      let tempPt = totalPt;
+
+      while (tempPt >= reqNext) {
+        tempPt -= reqNext;
+        level++;
+        reqNext += 4;
+      }
+
+      const ptsToNext = reqNext - tempPt;
+
+      document.getElementById('stat-level').textContent = `LV.${level}`;
+      document.getElementById('stat-next').textContent = `NEXT: ${ptsToNext} pts`;
+
+      document.getElementById('val-vit').textContent = `${vitCount} pts`;
+      document.getElementById('val-str').textContent = `${strCount} pts`;
+      document.getElementById('val-int').textContent = `${intCount} pts`;
+      document.getElementById('val-cha').textContent = `${chaCount} pts`;
+
+      const maxVal = Math.max(vitCount, strCount, intCount, chaCount, 10);
+      document.getElementById('gauge-vit').style.width = `${(vitCount / maxVal) * 100}%`;
+      document.getElementById('gauge-str').style.width = `${(strCount / maxVal) * 100}%`;
+      document.getElementById('gauge-int').style.width = `${(intCount / maxVal) * 100}%`;
+      document.getElementById('gauge-cha').style.width = `${(chaCount / maxVal) * 100}%`;
     }
 
     // イベントリスナー設定
+    document.getElementById('tab-calendar').addEventListener('click', () => {
+      document.getElementById('tab-calendar').classList.add('active');
+      document.getElementById('tab-status').classList.remove('active');
+      document.getElementById('view-calendar').classList.add('active');
+      document.getElementById('view-status').classList.remove('active');
+    });
+
+    document.getElementById('tab-status').addEventListener('click', () => {
+      document.getElementById('tab-status').classList.add('active');
+      document.getElementById('tab-calendar').classList.remove('active');
+      document.getElementById('view-status').classList.add('active');
+      document.getElementById('view-calendar').classList.remove('active');
+      renderStatus();
+    });
+
     document.getElementById('prev-month').addEventListener('click', () => {
       displayDate.setMonth(displayDate.getMonth() - 1);
       renderCalendar();
@@ -510,14 +782,22 @@
       renderCalendar();
     });
 
-    document.getElementById('btn-run').addEventListener('click', () => setLog('run', true));
-    document.getElementById('btn-run-cancel').addEventListener('click', () => setLog('run', false));
+    // 入力ボタン
+    document.getElementById('btn-vit').addEventListener('click', () => setLog('vit', true));
+    document.getElementById('btn-vit-cancel').addEventListener('click', () => setLog('vit', false));
 
     document.getElementById('btn-str').addEventListener('click', () => setLog('str', true));
     document.getElementById('btn-str-cancel').addEventListener('click', () => setLog('str', false));
 
+    document.getElementById('btn-int').addEventListener('click', () => setLog('int', true));
+    document.getElementById('btn-int-cancel').addEventListener('click', () => setLog('int', false));
+
+    document.getElementById('btn-cha').addEventListener('click', () => setLog('cha', true));
+    document.getElementById('btn-cha-cancel').addEventListener('click', () => setLog('cha', false));
+
     // 初期描画
     renderCalendar();
+    renderStatus();
   </script>
 </body>
 </html>
