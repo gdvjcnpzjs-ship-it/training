@@ -822,6 +822,10 @@
       });
     }
 
+    function getReqNextForLevel(lvl) {
+      return Math.min(lvl * 4, 28);
+    }
+
     function consumeSkillPoint() {
       const logs = getLogs();
       let vitCount = 0, strCount = 0, intCount = 0, chaCount = 0;
@@ -836,13 +840,13 @@
       const totalPt = vitCount + strCount + intCount + chaCount;
 
       let level = 1;
-      let reqNext = 4;
+      let reqNext = getReqNextForLevel(level);
       let tempPt = totalPt;
 
       while (tempPt >= reqNext) {
         tempPt -= reqNext;
         level++;
-        reqNext += 4;
+        reqNext = getReqNextForLevel(level);
       }
 
       const totalGainedSp = (level - 1) * 3;
@@ -871,13 +875,13 @@
 
       // レベル計算
       let level = 1;
-      let reqNext = 4;
+      let reqNext = getReqNextForLevel(level);
       let tempPt = totalPt;
 
       while (tempPt >= reqNext) {
         tempPt -= reqNext;
         level++;
-        reqNext += 4;
+        reqNext = getReqNextForLevel(level);
       }
 
       const ptsToNext = reqNext - tempPt;
