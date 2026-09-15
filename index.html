@@ -10,7 +10,7 @@
 
   <!-- JSで動的にPNGのapple-touch-iconを注入するため要素のみ定義 -->
   <link rel="apple-touch-icon" id="dynamic-apple-touch-icon" href="">
-  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'>⚔️</text></svg>">
+  <link rel="icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'><rect width='180' height='180' fill='%23030503'/><text x='50%' y='54%' dominant-baseline='middle' text-anchor='middle' font-size='100' fill='%23ffffff'></text></svg>">
 
   <title>TRAINING MATRIX</title>
   <style>
@@ -177,7 +177,7 @@
       text-shadow: 0 0 4px #00ff66;
     }
 
-    /* 記録バー（固定スロット: 1段目=VIT, 2段目=STR, 3段目=INT, 4段目=CHA） */
+    /* 記録バー */
     .bars-container {
       display: flex;
       flex-direction: column;
@@ -342,30 +342,98 @@
     .status-header {
       display: flex;
       justify-content: space-between;
-      align-items: flex-end;
+      align-items: flex-start;
       border-bottom: 1px dashed #004411;
-      padding-bottom: 10px;
+      padding-bottom: 12px;
       margin-bottom: 16px;
     }
 
     .player-name {
-      font-size: 1.1rem;
+      font-size: 1.2rem;
       font-weight: bold;
       color: #ffffff;
       text-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
     }
+
     .player-level {
-      font-size: 1rem;
+      font-size: 1.1rem;
       font-weight: bold;
       color: #ffcc00;
       text-shadow: 0 0 6px rgba(255, 204, 0, 0.5);
     }
 
     .next-level-info {
-      font-size: 0.65rem;
+      font-size: 0.7rem;
       color: #00aa44;
       margin-top: 2px;
       letter-spacing: 0.5px;
+    }
+
+    /* 強調表示したSP消費エリア */
+    .sp-section {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 6px;
+      margin-top: 8px;
+    }
+
+    .skill-points-info {
+      font-size: 0.9rem;
+      color: #00ff66;
+      font-weight: bold;
+      letter-spacing: 1px;
+    }
+
+    /* 大型化したUSE SPボタン */
+    .use-sp-btn {
+      background: #00ff66;
+      border: 2px solid #00ff66;
+      color: #000000;
+      font-size: 0.85rem;
+      font-weight: 900;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+      letter-spacing: 1.5px;
+      box-shadow: 0 0 12px rgba(0, 255, 102, 0.6);
+      transition: all 0.15s ease;
+    }
+
+    .use-sp-btn.active-pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 102, 0.7);
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 0 8px rgba(0, 255, 102, 0);
+        transform: scale(1.03);
+      }
+      100% {
+        box-shadow: 0 0 0 0 rgba(0, 255, 102, 0);
+        transform: scale(1);
+      }
+    }
+
+    .use-sp-btn:disabled {
+      opacity: 0.25;
+      background: #002200;
+      border-color: #004411;
+      color: #00aa44;
+      cursor: not-allowed;
+      box-shadow: none;
+      animation: none;
+    }
+
+    .use-sp-btn:not(:disabled):active {
+      transform: scale(0.95);
+      background: #ffffff;
+      border-color: #ffffff;
+      box-shadow: 0 0 20px #ffffff;
     }
 
     .stat-list {
@@ -455,10 +523,14 @@
     <div class="view-content" id="view-status">
       <div class="status-window">
         <div class="status-header">
-          <div class="player-name">HERO</div>
-          <div style="text-align: right;">
+          <div>
+            <div class="player-name">HERO</div>
             <div class="player-level" id="stat-level">LV.1</div>
             <div class="next-level-info" id="stat-next">NEXT: 4 pts</div>
+          </div>
+          <div class="sp-section">
+            <span class="skill-points-info" id="stat-sp">SP: 0</span>
+            <button class="use-sp-btn" id="use-sp-btn">USE SP</button>
           </div>
         </div>
         <div class="stat-list">
@@ -542,7 +614,7 @@
   </div>
 
   <script>
-    // iOS Safari用: Canvasで「黒背景 ＋ 白文字⚔️」のPNG Data URLを動的生成してapple-touch-iconにセット
+    // iOS Safari用: Canvasで「黒背景 ＋ 白文字」のPNG Data URLを動的生成してapple-touch-iconにセット
     (function generateAppleTouchIcon() {
       const canvas = document.createElement('canvas');
       canvas.width = 180;
@@ -553,12 +625,12 @@
       ctx.fillStyle = '#030503';
       ctx.fillRect(0, 0, 180, 180);
 
-      // 絵文字（白文字 ⚔️）
+      // 絵文字（白文字）
       ctx.font = '100px sans-serif';
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       ctx.fillStyle = '#ffffff';
-      ctx.fillText('⚔️', 90, 98);
+      ctx.fillText('', 90, 98);
 
       // PNGデータURLへ変換してlink要素に設定
       const pngDataUrl = canvas.toDataURL('image/png');
@@ -569,6 +641,7 @@
     })();
 
     const STORAGE_KEY = 'matrix_training_logs_v1';
+    const SP_USED_KEY = 'matrix_training_sp_used_v1';
     
     let displayDate = new Date();
     const today = new Date();
@@ -589,6 +662,15 @@
 
     function saveLogs(logs) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(logs));
+    }
+
+    function getUsedSp() {
+      const data = localStorage.getItem(SP_USED_KEY);
+      return data ? parseInt(data, 10) : 0;
+    }
+
+    function saveUsedSp(count) {
+      localStorage.setItem(SP_USED_KEY, count.toString());
     }
 
     function formatDateStr(date) {
@@ -740,6 +822,39 @@
       });
     }
 
+    function consumeSkillPoint() {
+      const logs = getLogs();
+      let vitCount = 0, strCount = 0, intCount = 0, chaCount = 0;
+
+      Object.values(logs).forEach(log => {
+        if (log.vit) vitCount++;
+        if (log.str) strCount++;
+        if (log.int) intCount++;
+        if (log.cha) chaCount++;
+      });
+
+      const totalPt = vitCount + strCount + intCount + chaCount;
+
+      let level = 1;
+      let reqNext = 4;
+      let tempPt = totalPt;
+
+      while (tempPt >= reqNext) {
+        tempPt -= reqNext;
+        level++;
+        reqNext += 4;
+      }
+
+      const totalGainedSp = (level - 1) * 3;
+      const usedSp = getUsedSp();
+      const remainingSp = totalGainedSp - usedSp;
+
+      if (remainingSp > 0) {
+        saveUsedSp(usedSp + 1);
+        renderStatus();
+      }
+    }
+
     // RPGステータス描画
     function renderStatus() {
       const logs = getLogs();
@@ -754,7 +869,7 @@
 
       const totalPt = vitCount + strCount + intCount + chaCount;
 
-      // レベル計算：LV.2まで4pt。以降は必要経験値が+4ずつ増加
+      // レベル計算
       let level = 1;
       let reqNext = 4;
       let tempPt = totalPt;
@@ -767,8 +882,24 @@
 
       const ptsToNext = reqNext - tempPt;
 
+      const totalGainedSp = (level - 1) * 3;
+      const usedSp = getUsedSp();
+      const remainingSp = totalGainedSp - usedSp;
+
       document.getElementById('stat-level').textContent = `LV.${level}`;
       document.getElementById('stat-next').textContent = `NEXT: ${ptsToNext} pts`;
+      document.getElementById('stat-sp').textContent = `SP: ${remainingSp}`;
+
+      const useBtn = document.getElementById('use-sp-btn');
+      if (useBtn) {
+        const canUse = remainingSp > 0;
+        useBtn.disabled = !canUse;
+        if (canUse) {
+          useBtn.classList.add('active-pulse');
+        } else {
+          useBtn.classList.remove('active-pulse');
+        }
+      }
 
       document.getElementById('val-vit').textContent = `${vitCount} pts`;
       document.getElementById('val-str').textContent = `${strCount} pts`;
@@ -820,6 +951,9 @@
 
     document.getElementById('btn-cha').addEventListener('click', () => setLog('cha', true));
     document.getElementById('btn-cha-cancel').addEventListener('click', () => setLog('cha', false));
+
+    // スキルポイント使用ボタン
+    document.getElementById('use-sp-btn').addEventListener('click', consumeSkillPoint);
 
     // 初期描画
     renderCalendar();
