@@ -482,6 +482,89 @@
     .gauge-fill.str { background-color: #ff3355; box-shadow: 0 0 6px #ff3355; }
     .gauge-fill.int { background-color: #00ff66; box-shadow: 0 0 6px #00ff66; }
     .gauge-fill.cha { background-color: #ffcc00; box-shadow: 0 0 6px #ffcc00; }
+
+    /* レベルアップ演出 */
+    .level-up-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0, 0, 0, 0.85);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      overflow: hidden;
+    }
+
+    .level-up-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .level-up-title {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #ffcc00;
+      text-shadow: 0 0 20px #ffcc00, 0 0 40px #ffcc00, 0 0 60px #ff5500;
+      letter-spacing: 4px;
+      transform: scale(0.2);
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    .level-up-text {
+      font-size: 2.2rem;
+      font-weight: bold;
+      color: #ffffff;
+      text-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66;
+      margin-top: 15px;
+      letter-spacing: 3px;
+      transform: scale(0.2);
+      animation: popIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+    }
+
+    .level-up-sub {
+      font-size: 1.1rem;
+      color: #00ff66;
+      margin-top: 25px;
+      letter-spacing: 2px;
+      opacity: 0;
+      animation: fadeIn 0.5s ease 0.6s forwards;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.2); opacity: 0; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+
+    @keyframes fadeIn {
+      to { opacity: 1; }
+    }
+
+    .particle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      pointer-events: none;
+      animation: particleFall 2.5s linear forwards;
+    }
+
+    @keyframes particleFall {
+      0% {
+        transform: translateY(-50px) rotate(0deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(105vh) rotate(720deg);
+        opacity: 0;
+      }
+    }
   </style>
 </head>
 <body>
@@ -613,6 +696,13 @@
     </div>
   </div>
 
+  <!-- レベルアップ演出オーバーレイ -->
+  <div class="level-up-overlay" id="level-up-overlay">
+    <div class="level-up-title">LEVEL UP!</div>
+    <div class="level-up-text" id="level-up-text">LV.2</div>
+    <div class="level-up-sub">GET 3 SKILL POINTS!</div>
+  </div>
+
   <script>
     // iOS Safari用: Canvasで「黒背景 ＋ 白文字」のPNG Data URLを動的生成してapple-touch-iconにセット
     (function generateAppleTouchIcon() {
@@ -646,6 +736,42 @@
     let displayDate = new Date();
     const today = new Date();
     const todayStr = formatDateStr(today);
+    let previousLevel = null;
+
+    function triggerLevelUpEffect(newLevel) {
+      const overlay = document.getElementById('level-up-overlay');
+      const text = document.getElementById('level-up-text');
+      text.textContent = `LV.${newLevel}`;
+      
+      overlay.querySelectorAll('.particle').forEach(p => p.remove());
+
+      const colors = ['#00ff66', '#ffcc00', '#00a2ff', '#ff3355', '#ffffff'];
+      for (let i = 0; i < 60; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.left = Math.random() * 100 + 'vw';
+        particle.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        particle.style.animationDelay = (Math.random() * 0.8) + 's';
+        particle.style.animationDuration = (1.5 + Math.random() * 1.5) + 's';
+        const size = Math.floor(Math.random() * 8 + 6);
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        overlay.appendChild(particle);
+      }
+
+      overlay.classList.add('active');
+
+      const hideHandler = () => {
+        overlay.classList.remove('active');
+        overlay.removeEventListener('click', hideHandler);
+      };
+      overlay.addEventListener('click', hideHandler);
+
+      setTimeout(() => {
+        overlay.classList.remove('active');
+        overlay.removeEventListener('click', hideHandler);
+      }, 3500);
+    }
 
     function getLogs() {
       const data = localStorage.getItem(STORAGE_KEY);
@@ -883,6 +1009,11 @@
         level++;
         reqNext = getReqNextForLevel(level);
       }
+
+      if (previousLevel !== null && level > previousLevel) {
+        triggerLevelUpEffect(level);
+      }
+      previousLevel = level;
 
       const ptsToNext = reqNext - tempPt;
 
